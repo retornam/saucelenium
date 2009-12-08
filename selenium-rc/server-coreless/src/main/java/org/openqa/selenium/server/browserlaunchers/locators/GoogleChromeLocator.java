@@ -17,6 +17,11 @@
 
 package org.openqa.selenium.server.browserlaunchers.locators;
 
+import java.io.IOException;
+
+import org.openqa.selenium.server.browserlaunchers.GoogleChromeLauncher;
+import org.openqa.selenium.server.browserlaunchers.MacProxyManager;
+import org.openqa.selenium.server.browserlaunchers.WindowsProxyManager;
 import org.openqa.selenium.server.browserlaunchers.WindowsUtils;
 
 /**
@@ -24,38 +29,30 @@ import org.openqa.selenium.server.browserlaunchers.WindowsUtils;
  */
 public class GoogleChromeLocator extends SingleBrowserLocator {
 
-    protected String browserName() {
-        return "Google Chrome";
+	// TODO: Support Ubuntu when I know where it installs googlechrome
+	
+	protected String browserName() {
+		return "Google Chrome";
+	}
+
+	protected String seleniumBrowserName() {
+		return "googlechrome";
+	}
+
+	protected String[] standardlauncherFilenames() {
+		if (WindowsUtils.thisIsWindows()) {
+            return new String[]{"chrome.exe"};
+        } else {
+            return new String[]{"Google Chrome"};
+        }
     }
 
-    protected String seleniumBrowserName() {
-        return "googlechrome";
-    }
+	protected String browserPathOverridePropertyName() {
+		return "googleChromeDefaultPath";
+	}
 
-    protected String[] standardlauncherFilenames() {
-        return new String[]{"chrome.exe"};
-    }
-
-    protected String browserPathOverridePropertyName() {
-        return "googleChromeDefaultPath";
-    }
-
-    protected String[] usualLauncherLocations() {
-        return WindowsUtils.thisIsWindows() ? usualWindowsLauncherLocations() : new String[0];
-    }
-
-    /**
-     * Returns usual Google Chrome installation location on Windows.
-     *
-     * WARNING: Executing this method on a non-windows platform will fail because the system root is not set.
-     *
-     * @return Usual Google Chrome installation location on Windows
-     */
-    protected String[] usualWindowsLauncherLocations() {
-        return new String[]{
-                WindowsUtils.getLocalAppDataPath() + "\\Google\\Chrome\\Application"
-        };
-    }
-
+	protected String[] usualLauncherLocations() {
+		return WindowsUtils.thisIsWindows() ? new String[] { WindowsUtils.getLocalAppDataPath() + "\\Google\\Chrome\\Application" } : new String[] { "/Applications/Google Chrome.app/Contents/MacOS" };
+	}
 
 }

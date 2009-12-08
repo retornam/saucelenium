@@ -46,6 +46,9 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
 
     private static final Log LOGGER = LogFactory.getLog(GoogleChromeLauncher.class);
 
+    protected WindowsProxyManager wpm;
+    protected MacProxyManager mpm;
+    
     private BrowserInstallation browserInstallation;
 
     private File customProfileDir;
@@ -62,6 +65,7 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
                                 String sessionId, BrowserInstallation browserInstallation) {
         super(sessionId, configuration, browserOptions);
         this.browserInstallation = browserInstallation;
+        createSystemProxyManager(sessionId);
     }
 
     @Override
@@ -71,6 +75,7 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
         try {
             createProfile(sessionId);
             final String[] cmdArray = createCommandArray(url);
+            setupSystemProxy();
             final AsyncExecute exe = new AsyncExecute();
             exe.setCommandline(cmdArray);
             process = exe.asyncSpawn();
@@ -82,6 +87,7 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
     public void close() {
         LOGGER.info("Killing Google Chrome...");
 
+        restoreSystemProxy();
         if (process == null) {
             return;
         }
@@ -97,6 +103,36 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
             final String errorMessage = "Couldn't delete custom profile directory";
             LOGGER.error(errorMessage, e);
             throw new RuntimeException(errorMessage, e);
+        }
+    }
+    
+    private void setupSystemProxy() throws IOException {
+        if (WindowsUtils.thisIsWindows()) {
+            wpm.backupRegistrySettings();
+            changeRegistrySettings();
+        } else {
+            mpm.backupNetworkSettings();
+            mpm.changeNetworkSettings();
+        }
+    }
+
+    private void restoreSystemProxy() {
+        if (WindowsUtils.thisIsWindows()) {
+            wpm.restoreRegistrySettings(browserConfigurationOptions.is("ensureCleanSession"));
+        } else {
+            mpm.restoreNetworkSettings();
+        }
+    }
+
+    protected void changeRegistrySettings() throws IOException {
+        wpm.changeRegistrySettings(browserConfigurationOptions.is("ensureCleanSession"), browserConfigurationOptions.is("avoidProxy"));
+    }
+
+    private void createSystemProxyManager(String sessionId) {
+        if (WindowsUtils.thisIsWindows()) {
+            wpm = new WindowsProxyManager(true, sessionId, getPort(), getPort());
+        } else {
+            mpm = new MacProxyManager(sessionId, getPort());
         }
     }
 
@@ -177,16 +213,18 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
                 // of a post.
                 "--disable-prompt-on-repost",
                 // Set the proxy server.
-                "--proxy-server=\"localhost:" + getPort() + "\"",
+                //"--proxy-server=\"localhost:" + getPort() + "\"",
                 // Always start the window maximized.  This is a poor man's
                 // replacement for windowMaximize (which does not work).
                 "--start-maximized",
+                //Turn off first-run dialog
+                "--no-first-run",
                 // Set the user data (i.e. profile) directory.
                 "--user-data-dir=\"" + customProfileDir.getAbsolutePath() + "\"",
                 url
         };
     }
-
+    
     /**
      * A helper class to generate Google Chrome preferences.
      *
