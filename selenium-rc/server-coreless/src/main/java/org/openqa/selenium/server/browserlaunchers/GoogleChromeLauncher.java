@@ -201,28 +201,49 @@ public class GoogleChromeLauncher extends AbstractBrowserLauncher {
     }
 
     private String[] createCommandArray(String url) {
-        return new String[] {
-                browserInstallation.launcherFilePath(),
-                // Disable hang monitor dialogs in renderer process.
-                "--disable-hang-monitor",
-                // Disable metrics reporting system.
-                "--disable-metrics",
-                // Disable pop-up blocking.
-                "--disable-popup-blocking",
-                // Don't prompt when navigating to a page that was the result
-                // of a post.
-                "--disable-prompt-on-repost",
-                // Set the proxy server.
-                //"--proxy-server=\"localhost:" + getPort() + "\"",
-                // Always start the window maximized.  This is a poor man's
-                // replacement for windowMaximize (which does not work).
-                "--start-maximized",
-                //Turn off first-run dialog
-                "--no-first-run",
-                // Set the user data (i.e. profile) directory.
-                "--user-data-dir=\"" + customProfileDir.getAbsolutePath() + "\"",
-                url
-        };
+    	if (WindowsUtils.thisIsWindows()) {
+    		return new String[] {	
+    				browserInstallation.launcherFilePath(),
+    				// Disable hang monitor dialogs in renderer process.
+    				"--disable-hang-monitor",
+    				// Disable metrics reporting system.
+    				"--disable-metrics",
+    				// Disable pop-up blocking.
+    				"--disable-popup-blocking",
+    				// Don't prompt when navigating to a page that was the result
+    				// of a post.
+    				"--disable-prompt-on-repost",
+    				// Set the proxy server.
+    				"--proxy-server=\"localhost:" + getPort() + "\"",
+    				// Always start the window maximized.  This is a poor man's
+    				// replacement for windowMaximize (which does not work).
+    				"--start-maximized",
+    				// Set the user data (i.e. profile) directory.
+    				"--user-data-dir=\"" + customProfileDir.getAbsolutePath() + "\"",
+    				url
+    		};
+    	} else {
+    		return new String[] {	
+    				browserInstallation.launcherFilePath(),
+    				// Disable hang monitor dialogs in renderer process.
+    				"--disable-hang-monitor",
+    				// Disable metrics reporting system.
+    				"--disable-metrics",
+    				// Disable pop-up blocking.
+    				"--disable-popup-blocking",
+    				// Don't prompt when navigating to a page that was the result
+    				// of a post.
+    				"--disable-prompt-on-repost",
+    				// Always start the window maximized.  This is a poor man's
+    				// replacement for windowMaximize (which does not work).
+    				"--start-maximized",
+    				//Turn off first-run dialog
+    				"--no-first-run",
+    				// Set the user data (i.e. profile) directory.
+    				"--user-data-dir=\"" + customProfileDir.getAbsolutePath() + "\"",
+    				url
+    		};
+    	}
     }
     
     /**
